@@ -69,4 +69,35 @@ export class CabBookingService {
       );
     }
   }
+  /**
+   * Get all cab bookings without pagination (for admin dashboard)
+   */
+  async getAllCabBookings(status?: string, search?: string) {
+    try {
+      return await cabBookingRepo.getAllCabBookings(status, search);
+    } catch (err: any) {
+      throw new ApiError(
+        500,
+        `Error fetching all cab bookings: ${err.message}`,
+        "DatabaseError"
+      );
+    }
+  }
+
+  /**
+   * Get cab booking by ID
+   */
+  async getCabBookingById(id: number) {
+    try {
+      const booking = await cabBookingRepo.getCabBookingById(id);
+      if (!booking) {
+        throw new ApiError(404, `Cab booking with ID ${id} not found`, "NotFoundError");
+      }
+      return booking;
+    } catch (err: any) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError(500, `Error fetching cab booking: ${err.message}`, "DatabaseError");
+    }
+  }
+
 }

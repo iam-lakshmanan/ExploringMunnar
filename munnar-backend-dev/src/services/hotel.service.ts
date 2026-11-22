@@ -507,6 +507,44 @@ export class HotelBookingService {
     };
   }
 
+  async getHotelBookingById(id: string) {
+    try {
+      const booking = await hotelBookingRepository.getBookingById(id);
+      if (!booking) {
+        throw new ApiError(
+          StatusCodes.NOT_FOUND,
+          `Hotel booking with id ${id} not found`,
+          "BookingNotFound"
+        );
+      }
+
+      return {
+        id: booking.id,
+        status: booking.status,
+        createdAt: booking.created_at,
+        updatedAt: booking.updated_at,
+        name: `${booking.first_name} ${booking.last_name}`.trim(),
+        firstName: booking.first_name,
+        lastName: booking.last_name,
+        email: booking.email,
+        phone: booking.phone_number,
+        checkIn: booking.check_in,
+        checkOut: booking.check_out,
+        adults: booking.adults,
+        kids: booking.kids,
+        hotel: booking.hotel,
+        user: booking.user,
+      };
+    } catch (err: any) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        err.message || "Failed to fetch hotel booking",
+        "HotelBookingFetchError"
+      );
+    }
+  }
+
   async updateHotelBookingStatus(bookingId: string, data: { status: string }) {
     try {
       return await hotelBookingRepository.updateBookingStatus(
@@ -528,4 +566,17 @@ export class HotelBookingService {
       throw err;
     }
   }
+  async getAllHotelBookings(filters?: any) {
+    try {
+      return await hotelBookingRepository.getAllHotelBookings(filters);
+    } catch (err: any) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        err.message || "Failed to fetch all hotel bookings",
+        "HotelBookingFetchError"
+      );
+    }
+  }
+
 }

@@ -89,3 +89,51 @@ export const updateSelfDriveRequestStatus = async (
     );
   }
 };
+
+export const getAllSelfDriveRequests = async (req: Request, res: Response) => {
+  try {
+    const status = req.query.status as string | undefined;
+    const search = req.query.search as string | undefined;
+
+    const result = await service.getAllSelfDriveRequests(status, search);
+
+    return sendSuccess(
+      res,
+      StatusCodes.OK,
+      "All self-drive requests retrieved successfully",
+      result
+    );
+  } catch (err: any) {
+    console.error("❌ Caught error:", err);
+    throw new ApiError(
+      err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+      err.message,
+      err.type || "DatabaseError"
+    );
+  }
+};
+
+export const getSelfDriveRequestById = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id) || id <= 0) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid request ID", "ValidationError");
+    }
+
+    const result = await service.getSelfDriveRequestById(id);
+
+    return sendSuccess(
+      res,
+      StatusCodes.OK,
+      "Self-drive request retrieved successfully",
+      result
+    );
+  } catch (err: any) {
+    console.error("❌ Caught error:", err);
+    throw new ApiError(
+      err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+      err.message,
+      err.type || "DatabaseError"
+    );
+  }
+};

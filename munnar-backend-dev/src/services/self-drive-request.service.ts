@@ -77,4 +77,35 @@ export class SelfDriveRequestService {
       );
     }
   }
+  /**
+   * Get all self-drive requests without pagination (for admin dashboard)
+   */
+  async getAllSelfDriveRequests(status?: string, search?: string) {
+    try {
+      return await selfDriveRepo.getAllSelfDriveRequests(status, search);
+    } catch (err: any) {
+      throw new ApiError(
+        500,
+        `Error fetching all self-drive requests: ${err.message}`,
+        "DatabaseError"
+      );
+    }
+  }
+
+  /**
+   * Get self-drive request by ID
+   */
+  async getSelfDriveRequestById(id: number) {
+    try {
+      const request = await selfDriveRepo.getSelfDriveRequestById(id);
+      if (!request) {
+        throw new ApiError(404, `Self-drive request with ID ${id} not found`, "NotFoundError");
+      }
+      return request;
+    } catch (err: any) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError(500, `Error fetching self-drive request: ${err.message}`, "DatabaseError");
+    }
+  }
+
 }

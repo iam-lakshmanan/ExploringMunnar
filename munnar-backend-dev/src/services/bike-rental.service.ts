@@ -69,4 +69,35 @@ export class BikeRentalService {
       );
     }
   }
+  /**
+   * Get all bike rentals without pagination (for admin dashboard)
+   */
+  async getAllBikeRentals(status?: string, search?: string) {
+    try {
+      return await bikeRepo.getAllBikeRentals(status, search);
+    } catch (err: any) {
+      throw new ApiError(
+        500,
+        `Error fetching all bike rentals: ${err.message}`,
+        "DatabaseError"
+      );
+    }
+  }
+
+  /**
+   * Get bike rental by ID
+   */
+  async getBikeRentalById(id: number) {
+    try {
+      const rental = await bikeRepo.getBikeRentalById(id);
+      if (!rental) {
+        throw new ApiError(404, `Bike rental with ID ${id} not found`, "NotFoundError");
+      }
+      return rental;
+    } catch (err: any) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError(500, `Error fetching bike rental: ${err.message}`, "DatabaseError");
+    }
+  }
+
 }

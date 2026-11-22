@@ -352,10 +352,12 @@ export class HotelBookingRepository {
     skip: number,
     take: number
   ) {
-    const { search, status } = dto;
+    const { search, status, userId, hotelId } = dto;
 
     const where: any = {
       ...(status ? { status } : {}),
+      ...(userId ? { user_id: userId } : {}),
+      ...(hotelId ? { hotel_id: hotelId } : {}),
       ...(search
         ? {
             OR: [
@@ -421,6 +423,39 @@ export class HotelBookingRepository {
     return { requests, totalRecords };
   }
 
+  async getBookingById(bookingId: string) {
+    return prisma.hotelBooking.findUnique({
+      where: { id: bookingId },
+      include: {
+        hotel: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            pricePerNight: true,
+            rating: true,
+            stayType: true,
+            location: true,
+            locationRange: true,
+            location_url: true,
+            images: {
+              where: { is_active: true },
+              select: { id: true, url: true, public_id: true },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+    });
+  }
+
   async updateBookingStatus(bookingId: string, status: string) {
     return prisma.hotelBooking.update({
       where: { id: bookingId },
@@ -432,4 +467,86 @@ export class HotelBookingRepository {
       },
     });
   }
+  async getAllHotelBookings(dto?: { search?: string; status?: booking_status; userId?: number; hotelId?: string }) {
+    const { search, status, userId, hotelId } = dto || {};
+
+    const where: any = {
+      is_active: true,
+      ...(status ? { status } : {}),
+      ...(userId ? { user_id: userId } : {}),
+      ...(hotelId ? { hotel_id: hotelId } : {}),
+      ...(search
+        ? {
+            OR: [
+              { first_name: { contains: search, mode: "insensitive" } },
+              { last_name: { contains: search, mode: "insensitive" } },
+              { hotel: { name: { contains: search, mode: "insensitive" } } },
+            ],
+          }
+        : {}),
+    };
+
+    const requests = await prisma.hotelBooking.findMany({
+      where,
+      orderBy: { created_at: "desc" },
+      select: {
+        id: true,
+        status: true,
+        check_in: true,
+        check_out: true,
+        adults: true,
+        kids: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        phone_number: true,
+        created_at: true,
+        updated_at: true,
+        user_id: true,
+        hotel_id: true,
+        hotel: {
+          select: {
+            name: true,
+            pricePerNight: true,
+            location: true,
+            images: {
+              where: { is_active: true },
+              take: 1,
+              select: { id: true, url: true },
+            },
+          },
+        },
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+    });
+
+    return requests.map((req: any) => ({
+      id: req.id,
+      status: req.status,
+      createdAt: req.created_at,
+      updatedAt: req.updated_at,
+      hotelName: req.hotel?.name,
+      pricePerNight: req.hotel?.pricePerNight,
+      location: req.hotel?.location,
+      image: req.hotel?.images?.[0] ?? null,
+      name: `${req.first_name} ${req.last_name}`.trim(),
+      firstName: req.first_name,
+      lastName: req.last_name,
+      email: req.email,
+      phone: req.phone_number,
+      checkIn: req.check_in,
+      checkOut: req.check_out,
+      adults: req.adults,
+      kids: req.kids,
+      user_id: req.user_id,
+      user_name: req.user?.name,
+    }));
+  }
+
 }

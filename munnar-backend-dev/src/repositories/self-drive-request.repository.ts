@@ -123,4 +123,97 @@ export class SelfDriveRequestRepository {
       throw err;
     }
   }
+  async getAllSelfDriveRequests(status?: string, search?: string) {
+    try {
+      const where: Prisma.SelfDriveCarRequestWhereInput = {
+        is_active: true,
+        ...(status ? { status: status as any } : {}),
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { user: { name: { contains: search, mode: "insensitive" } } },
+                { pickup_location: { contains: search, mode: "insensitive" } },
+                { drop_location: { contains: search, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      };
+
+      const requests = await prisma.selfDriveCarRequest.findMany({
+        where,
+        select: {
+          id: true,
+          user_id: true,
+          name: true,
+          email: true,
+          pickup_location: true,
+          drop_location: true,
+          date: true,
+          time: true,
+          mobile_number: true,
+          no_of_days: true,
+          fuel_type: true,
+          driver_needed: true,
+          car_category: true,
+          status: true,
+          is_active: true,
+          created_at: true,
+          updated_at: true,
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+      });
+
+      return requests.map(({ user, ...rest }) => ({
+        ...rest,
+        name: rest.name,
+        email: rest.email,
+        from: rest.pickup_location,
+        to: rest.drop_location,
+        phone: rest.mobile_number,
+        date: rest.date.toISOString().split('T')[0],
+        days: rest.no_of_days,
+        fueltype: rest.fuel_type,
+        carCategory: rest.car_category,
+        driverNeeded: rest.driver_needed ? "Yes" : "No",
+        user_name: user?.name,
+      }));
+    } catch (err: any) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new Error(
+          `Database error while fetching all self-drive requests: ${err.message}`
+        );
+      }
+      throw err;
+    }
+  }
+
+  async getSelfDriveRequestById(id: number) {
+    try {
+      const request = await prisma.selfDriveCarRequest.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+            },
+          },
+        },
+      });
+      return request;
+    } catch (err: any) {
+      throw err;
+    }
+  }
+
 }

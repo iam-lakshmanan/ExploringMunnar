@@ -14,6 +14,8 @@ import {
   createHotelBooking,
   getHotelBookingRequests,
   updateHotelBookingStatus,
+  getHotelBookingById,
+  getHotelBookings,
   updateHotelPromotions,
 } from "../controllers/hotel.controller";
 import { upload } from "../middlewares/upload.middleware";
@@ -27,6 +29,8 @@ import {
 import {
   createCabBooking,
   getCabBookings,
+  getAllCabBookings,
+  getCabBookingById,
   updateCabBookingStatus,
 } from "../controllers/cab-booking.controller";
 import { CabBookingDTO, GetCabBookingsDTO } from "../dto/cab-booking.dto";
@@ -34,6 +38,8 @@ import {
   createSelfDriveRequest,
   updateSelfDriveRequestStatus,
   getSelfDriveRequests,
+  getAllSelfDriveRequests,
+  getSelfDriveRequestById,
 } from "../controllers/self-drive-request.controller";
 import {
   SelfDriveRequestDTO,
@@ -42,6 +48,8 @@ import {
 import {
   createBikeRental,
   getBikeRentals,
+  getAllBikeRentals,
+  getBikeRentalById,
   updateBikeRentalStatus,
 } from "../controllers/bike-rental.controller";
 import { BikeRentalDTO, GetBikeRentalDTO } from "../dto/bike-rental.dto";
@@ -176,6 +184,8 @@ router.post(
   validateRequest(HotelRequestSearchDto),
   getHotelBookingRequests
 );
+router.get("/hotel-booking", getHotelBookings);
+router.get("/hotel-booking/:id", getHotelBookingById);
 router.put(
   "/hotel-booking/:id",
   validateRequest(UpdateStatusDTO),
@@ -195,6 +205,8 @@ router.post(
   validateRequest(GetCabBookingsDTO),
   getCabBookings
 );
+router.get("/cab-booking", getAllCabBookings);
+router.get("/cab-booking/:id", getCabBookingById);
 router.put(
   "/cab-booking/:id",
   validateRequest(UpdateStatusDTO),
@@ -212,6 +224,8 @@ router.post(
   validateRequest(GetSelfDriveRequestsDTO),
   getSelfDriveRequests
 );
+router.get("/self-drive", getAllSelfDriveRequests);
+router.get("/self-drive/:id", getSelfDriveRequestById);
 router.put(
   "/self-drive/:id",
   validateRequest(UpdateStatusDTO),
@@ -225,6 +239,8 @@ router.post(
   validateRequest(GetBikeRentalDTO),
   getBikeRentals
 );
+router.get("/bike-rentals", getAllBikeRentals);
+router.get("/bike-rentals/:id", getBikeRentalById);
 router.put(
   "/bike-rentals/:id",
   validateRequest(UpdateStatusDTO),

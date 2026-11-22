@@ -1,0 +1,115 @@
+================================================================================
+EXPLORING MUNNAR - ADMIN AUTHENTICATION API SPECIFICATION (FRONTEND GUIDE)
+================================================================================
+
+Base URL (Local):  http://localhost:5000
+Base URL (Prod):   https://your-render-service.onrender.com
+
+Authentication Flow:
+  1. The user logs in or signs up using their email and password.
+  2. The server responds with a JWT "token" and the "user" object (including "role").
+  3. Store the token in localStorage / cookies.
+  4. Verify that "user.role === 'ADMIN'" to allow entry to the Admin Dashboard.
+  5. Send the token in the header of protected API requests:
+     Authorization: Bearer <token>
+
+================================================================================
+1. ADMIN SIGNUP (Register Account)
+================================================================================
+Method:    POST
+Endpoint:  /auth/signup
+Headers:
+  Content-Type: application/json
+
+Request Body (JSON):
+--------------------------------------------------------------------------------
+{
+  "name": "Admin Name",                    // String - Required
+  "email": "admin@exploringmunnar.com",    // String (Email) - Required
+  "password": "StrongPassword123",         // String - Required
+  "phoneNumber": "+919876543210"           // String - Optional
+}
+
+Success Response (201 Created):
+--------------------------------------------------------------------------------
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "email": "admin@exploringmunnar.com",
+    "role": "ADMIN"
+  }
+}
+
+Error Responses:
+--------------------------------------------------------------------------------
+- Status 400 Bad Request (Email already registered):
+  {
+    "message": "User already exists"
+  }
+
+
+================================================================================
+2. ADMIN LOGIN (Authenticate & Get Token)
+================================================================================
+Method:    POST
+Endpoint:  /auth/login
+Headers:
+  Content-Type: application/json
+
+Request Body (JSON):
+--------------------------------------------------------------------------------
+{
+  "email": "admin@exploringmunnar.com",    // String (Email) - Required
+  "password": "StrongPassword123"          // String - Required
+}
+
+Success Response (200 OK):
+--------------------------------------------------------------------------------
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "email": "admin@exploringmunnar.com",
+    "role": "ADMIN"
+  }
+}
+
+Error Responses:
+--------------------------------------------------------------------------------
+- Status 401 Unauthorized (Wrong email or password):
+  {
+    "message": "Invalid credentials"
+  }
+
+
+================================================================================
+3. FRONTEND INTEGRATION INSTRUCTIONS (FOR DEVELOPER)
+================================================================================
+
+1. Handling Successful Login:
+   - On response received from POST /auth/login:
+     if (response.data.user.role !== 'ADMIN') {
+       alert("Access Denied: You do not have administrator permissions.");
+       return;
+     }
+     localStorage.setItem('token', response.data.token);
+     localStorage.setItem('user', JSON.stringify(response.data.user));
+     // Redirect to /admin/dashboard
+
+2. Sending Token with API Requests:
+   - Include the stored token in all subsequent API calls:
+     headers: {
+       'Content-Type': 'application/json',
+       'Authorization': `Bearer ${localStorage.getItem('token')}`
+     }
+
+3. Logout:
+   - Clear storage and redirect to login:
+     localStorage.removeItem('token');
+     localStorage.removeItem('user');
+     // Redirect to /login
+
+================================================================================
+END OF AUTHENTICATION SPECIFICATION
+================================================================================

@@ -80,4 +80,13 @@ export class HotelRequestSearchDto {
   })
 @Transform(({ value }) => value === "" ? undefined : value)
   status?: booking_status;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  userId?: number;
+
+  @IsOptional()
+  @IsString()
+  hotelId?: string;
 }

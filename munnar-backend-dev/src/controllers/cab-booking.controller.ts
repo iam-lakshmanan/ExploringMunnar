@@ -74,3 +74,51 @@ export const updateCabBookingStatus = async (req: Request, res: Response) => {
     );
   }
 };
+
+export const getAllCabBookings = async (req: Request, res: Response) => {
+  try {
+    const status = req.query.status as string | undefined;
+    const search = req.query.search as string | undefined;
+
+    const result = await service.getAllCabBookings(status, search);
+
+    return sendSuccess(
+      res,
+      StatusCodes.OK,
+      "All cab bookings retrieved successfully",
+      result
+    );
+  } catch (err: any) {
+    console.error("❌ Caught error:", err);
+    throw new ApiError(
+      err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+      err.message,
+      err.type || "DatabaseError"
+    );
+  }
+};
+
+export const getCabBookingById = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id) || id <= 0) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid booking ID", "ValidationError");
+    }
+
+    const result = await service.getCabBookingById(id);
+
+    return sendSuccess(
+      res,
+      StatusCodes.OK,
+      "Cab booking retrieved successfully",
+      result
+    );
+  } catch (err: any) {
+    console.error("❌ Caught error:", err);
+    throw new ApiError(
+      err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+      err.message,
+      err.type || "DatabaseError"
+    );
+  }
+};

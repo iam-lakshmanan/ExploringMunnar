@@ -116,4 +116,85 @@ export class CabBookingRepository {
       throw err;
     }
   }
+  async getAllCabBookings(status?: string, search?: string) {
+    try {
+      const where: Prisma.CabBookingWhereInput = {
+        is_active: true,
+        ...(status ? { status: status as any } : {}),
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { user: { name: { contains: search, mode: "insensitive" } } },
+                { pickup_point: { contains: search, mode: "insensitive" } },
+                { drop_point: { contains: search, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      };
+
+      const bookings = await prisma.cabBooking.findMany({
+        where,
+        select: {
+          id: true,
+          user_id: true,
+          name: true,
+          email: true,
+          pickup_point: true,
+          drop_point: true,
+          date: true,
+          time: true,
+          mobile_number: true,
+          no_of_passengers: true,
+          vehicle_type: true,
+          status: true,
+          is_active: true,
+          created_at: true,
+          updated_at: true,
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+      });
+
+      return bookings.map(({ user, ...rest }) => ({
+        ...rest,
+        user_name: user?.name,
+      }));
+    } catch (err: any) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new Error(
+          `Database error while fetching all cab bookings: ${err.message}`
+        );
+      }
+      throw err;
+    }
+  }
+
+  async getCabBookingById(id: number) {
+    try {
+      const booking = await prisma.cabBooking.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+            },
+          },
+        },
+      });
+      return booking;
+    } catch (err: any) {
+      throw err;
+    }
+  }
+
 }

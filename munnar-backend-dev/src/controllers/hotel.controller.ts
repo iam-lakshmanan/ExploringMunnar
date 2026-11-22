@@ -242,3 +242,73 @@ export const updateHotelBookingStatus = async (req: Request, res: Response) => {
     );
   }
 };
+
+export const getHotelBookingById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "Booking ID is required",
+        "ValidationError"
+      );
+    }
+
+    const result = await hotelBookingService.getHotelBookingById(id);
+
+    return sendSuccess(
+      res,
+      StatusCodes.OK,
+      "Hotel booking fetched successfully",
+      result
+    );
+  } catch (err: any) {
+    const error =
+      err instanceof ApiError
+        ? err
+        : new ApiError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            err.message || "Failed to fetch hotel booking",
+            "HotelBookingFetchError"
+          );
+
+    return sendError(res, error.statusCode, error.message, error.type);
+  }
+};
+
+export const getHotelBookings = async (req: Request, res: Response) => {
+  try {
+    const search = req.query.search ? String(req.query.search).trim() : undefined;
+    const status = req.query.status as any;
+    const userId = req.query.userId ? Number(req.query.userId) : undefined;
+    const hotelId = req.query.hotelId ? String(req.query.hotelId).trim() : undefined;
+
+    const filters = {
+      search,
+      status,
+      userId: isNaN(userId as number) ? undefined : userId,
+      hotelId,
+    };
+
+    const result = await hotelBookingService.getAllHotelBookings(filters);
+
+    return sendSuccess(
+      res,
+      StatusCodes.OK,
+      "All hotel bookings retrieved successfully",
+      result
+    );
+  } catch (err: any) {
+    const error =
+      err instanceof ApiError
+        ? err
+        : new ApiError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            err.message || "Failed to fetch hotel bookings",
+            "HotelBookingFetchError"
+          );
+
+    return sendError(res, error.statusCode, error.message, error.type);
+  }
+};

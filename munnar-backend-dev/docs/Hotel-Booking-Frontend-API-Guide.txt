@@ -1,0 +1,156 @@
+================================================================================
+EXPLORING MUNNAR - HOTEL BOOKING GET APIs SPECIFICATION (ADMIN DASHBOARD)
+================================================================================
+
+Base URL (Local):  http://localhost:5000
+Base URL (Prod):   https://your-render-service.onrender.com
+
+Note: All the GET endpoints below return the COMPLETE data array without pagination
+specifically designed for your Admin Dashboard tables, counters, and analytics.
+
+================================================================================
+1. GET ALL HOTEL BOOKINGS (Unpaginated)
+================================================================================
+Method:    GET
+Endpoint:  /api/hotel-booking
+Headers:
+  Content-Type: application/json
+
+Optional Query Parameters:
+--------------------------------------------------------------------------------
+  Parameter   | Type   | Description
+  ------------|--------|--------------------------------------------------------
+  status      | String | Filter by status: "Pending" | "Booked" | "Canceled"
+  search      | String | Search keyword (matches guest first name, last name, or hotel name)
+  userId      | Number | Filter bookings made by a specific registered User ID
+  hotelId     | String | Filter bookings for a specific Hotel UUID
+
+Example Request URLs:
+--------------------------------------------------------------------------------
+  1. Get All Hotel Bookings (Unpaginated):
+     GET http://localhost:5000/api/hotel-booking
+
+  2. Filter by Status:
+     GET http://localhost:5000/api/hotel-booking?status=Pending
+
+  3. Search by Guest Name / Hotel Name:
+     GET http://localhost:5000/api/hotel-booking?search=Kumar
+
+  4. Filter by Registered User ID:
+     GET http://localhost:5000/api/hotel-booking?userId=1
+
+  5. Filter by Hotel UUID:
+     GET http://localhost:5000/api/hotel-booking?hotelId=b231b043-5e73-4671-b7ff-31c664df6c2f
+
+Success Response (200 OK):
+--------------------------------------------------------------------------------
+{
+  "success": true,
+  "code": 200,
+  "message": "All hotel bookings retrieved successfully",
+  "data": [
+    {
+      "id": "e8a93cb2-7201-4475-8167-2cf3b5a1b32d",
+      "status": "Pending",
+      "createdAt": "2026-11-22T09:30:00.000Z",
+      "updatedAt": "2026-11-22T09:30:00.000Z",
+      "hotelName": "Sivas Homes",
+      "pricePerNight": "3000.00",
+      "location": "Ooty",
+      "image": {
+        "id": "d8a25d9b-6ec4-4bd2-8364-11d8cff74896",
+        "url": "https://res.cloudinary.com/dpr1hbscf/image/upload/v1783226886/hotels/vus1vtlpls5w7smjjxvn.png"
+      },
+      "name": "Laxman Kumar",
+      "firstName": "Laxman",
+      "lastName": "Kumar",
+      "email": "lakshmanan02731@gmail.com",
+      "phone": "+919876543210",
+      "checkIn": "2026-12-01T00:00:00.000Z",
+      "checkOut": "2026-12-05T00:00:00.000Z",
+      "adults": 2,
+      "kids": 0,
+      "user_id": 1,
+      "user_name": "Lakshmanan"
+    }
+  ],
+  "timestamp": "2026-11-22T20:05:00.000Z"
+}
+
+
+================================================================================
+2. GET SINGLE HOTEL BOOKING BY ID (Detail View)
+================================================================================
+Method:    GET
+Endpoint:  /api/hotel-booking/:id
+Headers:
+  Content-Type: application/json
+
+Path Parameter:
+--------------------------------------------------------------------------------
+  :id -> The UUID string of the hotel booking (e.g. e8a93cb2-7201-4475-8167-2cf3b5a1b32d)
+
+Example Request URL:
+--------------------------------------------------------------------------------
+  GET http://localhost:5000/api/hotel-booking/e8a93cb2-7201-4475-8167-2cf3b5a1b32d
+
+Success Response (200 OK):
+--------------------------------------------------------------------------------
+{
+  "success": true,
+  "code": 200,
+  "message": "Hotel booking fetched successfully",
+  "data": {
+    "id": "e8a93cb2-7201-4475-8167-2cf3b5a1b32d",
+    "status": "Pending",
+    "createdAt": "2026-11-22T09:30:00.000Z",
+    "updatedAt": "2026-11-22T09:30:00.000Z",
+    "name": "Laxman Kumar",
+    "firstName": "Laxman",
+    "lastName": "Kumar",
+    "email": "lakshmanan02731@gmail.com",
+    "phone": "+919876543210",
+    "checkIn": "2026-12-01T00:00:00.000Z",
+    "checkOut": "2026-12-05T00:00:00.000Z",
+    "adults": 2,
+    "kids": 0,
+    "hotel": {
+      "id": "b231b043-5e73-4671-b7ff-31c664df6c2f",
+      "name": "Sivas Homes",
+      "description": "A quiet eco cottage near tea plantations",
+      "pricePerNight": "3000.00",
+      "rating": "4.50",
+      "stayType": "Eco Cottages",
+      "location": "Ooty",
+      "locationRange": "Ooty Town",
+      "location_url": null,
+      "images": [
+        {
+          "id": "d8a25d9b-6ec4-4bd2-8364-11d8cff74896",
+          "url": "https://res.cloudinary.com/dpr1hbscf/image/upload/v1783226886/hotels/vus1vtlpls5w7smjjxvn.png",
+          "public_id": "hotels/vus1vtlpls5w7smjjxvn"
+        }
+      ]
+    },
+    "user": {
+      "id": 1,
+      "name": "Lakshmanan",
+      "email": "lakshmanan02731@gmail.com",
+      "phone": "+919876543210"
+    }
+  },
+  "timestamp": "2026-11-22T20:05:00.000Z"
+}
+
+Error Response (404 Not Found):
+--------------------------------------------------------------------------------
+{
+  "success": false,
+  "code": 404,
+  "message": "Hotel booking with id <id> not found",
+  "type": "BookingNotFound"
+}
+
+================================================================================
+END OF HOTEL BOOKING GET APIs SPECIFICATION
+================================================================================
