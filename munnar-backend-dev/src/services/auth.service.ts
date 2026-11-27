@@ -1,6 +1,47 @@
+
+export const ADMIN_CONFIG = {
+  EMAIL: "exploringmunnarr@gmail.com",
+  INITIAL_PASSWORD: "Admin@2026",
+};
+
+/**
+ * Seeds or synchronizes the default Admin account securely in PostgreSQL.
+ * If the account does not exist, it creates it with role ADMIN and bcrypt hash of Admin@2026.
+ */
+export const seedInitialAdmin = async () => {
+  try {
+    const existing = await userRepo.findUserByEmail(ADMIN_CONFIG.EMAIL);
+    if (!existing) {
+      const passwordHash = await bcrypt.hash(ADMIN_CONFIG.INITIAL_PASSWORD, 10);
+      await prisma.user.create({
+        data: {
+          name: "Admin",
+          email: ADMIN_CONFIG.EMAIL,
+          password_hash: passwordHash,
+          role: UserRole.ADMIN,
+          auth_provider: AuthProvider.EMAIL,
+          email_verified: true,
+          is_active: true,
+        },
+      });
+      console.log("✅ Initial Admin account initialized in database: " + ADMIN_CONFIG.EMAIL);
+    } else if (existing.role !== UserRole.ADMIN) {
+      // Ensure admin role is granted
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: { role: UserRole.ADMIN },
+      });
+      console.log("✅ Admin role synced for: " + ADMIN_CONFIG.EMAIL);
+    }
+  } catch (err: any) {
+    console.error("⚠️ Failed to seed initial admin:", err.message);
+  }
+};
+
 import jwt from "jsonwebtoken";
 import { UserRepository } from "../repositories/user.repository";
-import { user } from "@prisma/client";
+import { user, UserRole, AuthProvider } from "@prisma/client";
+import { prisma } from "../prisma-client";
 import { GoogleAuthResult } from "../dto/auth.dto";
 import admin from "../lib/firebaseAdmin";
 import bcrypt from "bcryptjs";
@@ -94,6 +135,11 @@ export const emailLoginService = async (
   email: string,
   password: string
 ) => {
+  // Ensure initial admin is created if logging in with default admin credentials
+  if (email.toLowerCase() === ADMIN_CONFIG.EMAIL.toLowerCase()) {
+    await seedInitialAdmin();
+  }
+
   const user = await userRepo.findUserByEmail(email);
   if (!user || !user.password_hash) {
     throw new Error("Invalid credentials");
@@ -116,6 +162,7 @@ export const emailLoginService = async (
       id: user.id,
       email: user.email,
       role: user.role,
+      name: user.name,
     },
   };
 };

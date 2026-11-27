@@ -5,7 +5,7 @@ import {
   googleLoginController,
 } from "../controllers/auth.controller";
 import { sendEmailOtpController, verifyEmailOtpController } from "../controllers/email.controller";
-import { forgotPasswordController, resetPasswordController } from "../controllers/password.controller";
+import { forgotPasswordController, resetPasswordController, sendPasswordOtpController, changePasswordWithOtpController } from "../controllers/password.controller";
 
 const authRouter = Router();
 
@@ -18,5 +18,9 @@ authRouter.post("/email/verify", verifyEmailOtpController);
 
 authRouter.post("/forgot-password", forgotPasswordController);
 authRouter.post("/reset-password", resetPasswordController);
+
+
+authRouter.post("/change-password/send-otp", sendPasswordOtpController);
+authRouter.post("/change-password", changePasswordWithOtpController);
 
 export default authRouter;

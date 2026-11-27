@@ -1,11 +1,13 @@
 import crypto from "crypto";
 import { UserRepository } from "../repositories/user.repository";
-import { sendPasswordResetEmail } from "../utils/mailer";
+import { sendPasswordResetEmail, sendPasswordOtpEmail } from "../utils/mailer";
+import { EmailVerificationRepository } from "../repositories/email.repository";
 import { PasswordResetRepository } from "../repositories/password.repository";
 import bcrypt from "bcryptjs";
 
 const userRepo = new UserRepository();
 const resetRepo = new PasswordResetRepository();
+const emailVerifyRepo = new EmailVerificationRepository();
 
 export const forgotPasswordService = async (email: string) => {
   const user = await userRepo.findUserByEmail(email);
@@ -63,4 +65,55 @@ export const resetPasswordService = async (
   await resetRepo.deleteAll(resetRecord.user_id);
 
   return { message: "Password reset successful" };
+};
+export const sendPasswordOtpService = async (email: string) => {
+  const user = await userRepo.findUserByEmail(email);
+  if (!user) {
+    // Return standard response for security
+    return { success: true, message: "If the email exists, an OTP has been sent." };
+  }
+
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const otpHash = await bcrypt.hash(otp, 10);
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+  await emailVerifyRepo.deleteAll(user.id);
+  await emailVerifyRepo.createOtp(user.id, otpHash, expiresAt);
+
+  await sendPasswordOtpEmail(user.email, otp);
+
+  return { success: true, message: "Password change OTP sent to email" };
+};
+
+export const changePasswordWithOtpService = async (
+  email: string,
+  otp: string,
+  newPassword: string
+) => {
+  const user = await userRepo.findUserByEmail(email);
+  if (!user) {
+    throw new Error("Invalid request");
+  }
+
+  const record = await emailVerifyRepo.findLatestOtp(user.id);
+  if (!record) {
+    throw new Error("OTP not found or expired");
+  }
+
+  if (record.expires_at < new Date()) {
+    throw new Error("OTP has expired. Please request a new one");
+  }
+
+  const isValid = await bcrypt.compare(otp, record.otp_hash);
+  if (!isValid) {
+    throw new Error("Invalid OTP");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await userRepo.updatePassword(user.id, passwordHash);
+
+  // Clean up used OTPs
+  await emailVerifyRepo.deleteAll(user.id);
+
+  return { success: true, message: "Password changed successfully" };
 };
